@@ -101,13 +101,14 @@ const firestore = firebase.firestore();
 
 function Blog(props) {
   const { title, body, blogImage, imgAlt } = props.post;
+  const gridSide = (props.index % 2 === 0 ? 'grid-item-right' : 'grid-item-left');
 
   return (
-    <div>
+    <div style={{backgroundImage: `url(${blogImage})`}} className={gridSide}>
       <h2>{title}</h2>
+      <br />
       <div>{body}</div>
       <br />
-      <img src={blogImage} alt={imgAlt} />
     </div>
   );
 }
@@ -117,12 +118,13 @@ function BlogLatest(props) {
 
   const divStyle = {
     height: '250px',
-    width: '80%',
-    margin: 'auto',
+    margin: '2% auto',
     alignContent: 'center',
     backgroundImage: `url(${blogImage})`,
     backgroundRepeat: 'no-repeat',
     backgroundSize: '100% 100%',
+    fontWeight: 'bold',
+    fontSize: 'larger'
   };
 
   return <div style={divStyle}>{title}</div>;
@@ -132,20 +134,23 @@ function App() {
   //const [user] = useAuthState(auth);
 
   const postsRef = firestore.collection('posts');
-  const query = postsRef.orderBy('createdAt').limit(25);
+  const query = postsRef.orderBy('createdAt', 'desc').limit(25);
 
   const [posts] = useCollectionData(query, { idField: 'id' });
-
+  
   return (
     <div className="App">
-      <section>
+      <header>React Blog</header>
+      {posts &&
+          posts.map((post, index) => {
+              if (index === 0)
+                return <BlogLatest key={post.id} post={post} />;
+            })}
+      <section className='grid'>
         {posts &&
-          posts.map(function (post, index) {
-            return index === 0 ? (
-              <BlogLatest key={post.id} post={post} />
-            ) : (
-              <Blog key={post.id} post={post} />
-            );
+          posts.map((post, index) => {
+            if (index !== 0)
+              return <Blog key={post.id} post={post} index={index}/>;
           })}
       </section>
     </div>
